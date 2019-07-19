@@ -1,44 +1,64 @@
-//Require the mongoose module
+//REQUIRE THE MONGOOSE MODULE
 const mongoose = require("mongoose");
-//Require the express module
+//REQUIRE THE EXPRESS MODULE
 const express = require("express");
-
-//create a new express application
+//CREATE EXPRESS APPLICATION
 const app = express();
-
-//require the http module
-const http = require("http").Server(app);
-
-// require the socket.io module
+//REQUIRE THE HTTP MODULE
+const http = require("http")
+    .Server(app);
+//REQUIRE THE SOCKET.IO MODULE
 const io = require("socket.io");
-
-const port = 500;
-
+//REQUIRE THE PATH MODULE
+const path = require("path");
+//SET UP THE PORT FOR THE APP
+const port = 3666;
+//SET UP THE SOCKET
 const socket = io(http);
-//create an event listener
-
-
-
-//
+//REQUIRE THE USER MODEL FOR MONGO
 const  User  = require("./models/UserSchema");
+//REQUIRE THE MONGO DB CONNECTOR
 const  connect  = require("./config/dbconnection");
 
-
+//CONNECT TO MONGO DB
 connect.then(db => {
-   //console.log(db, "CONNECTED");
-  let chatUser  =  new User({
-    userName: 'DEMO',
-    password: "12342asfa"
-  });
-  chatUser.save();
+  try {
+    console.log("CONNECTED");
+  } catch(error) {
+    handleError(error)
+  }
 })
 
-//To listen to messages
-socket.on("connection", (socket) => {
-  console.log("user connected");
-});
+const handleError = (error) => {
+  console.log(error)
+}
 
-//wire up the server to listen to our port 500
+//LISTEN TO SET PORT
 http.listen(port, () => {
   console.log("connected to port: "+ port)
 });
+//SERVE APP
+app.get('/', (request, response) => {
+  response.sendFile(path.join(__dirname + '/index.html'));
+});
+
+
+//SOCKET EVENTS
+socket.on("connection", socket => {
+
+
+  console.log("user connected");
+  socket.on('register', handleRegister);
+  socket.on("disconnect", function() {
+    console.log("user disconnected");
+  });
+
+  //Someone is typing
+  socket.on("typing", data => {
+      socket.broadcast.emit("notifyTyping", {
+        user: data.user,
+        message: data.message
+      });
+  });
+});
+
