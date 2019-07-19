@@ -1,0 +1,33 @@
+{
+  "name": "fin-chat",
+  "version": "1.0.0",
+  "description": "Jobsity Fin-chat coding challenge ",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "start": "npm start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pg88/fin-chat.git"
+  },
+  "keywords": [
+    "chat",
+    "fin",
+    "bot"
+  ],
+  "author": "Pablo Garcia E.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pg88/fin-chat/issues"
+  },
+  "homepage": "https://github.com/pg88/fin-chat#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "bluebird": "^3.5.5",
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "mongoose": "^5.6.5",
+    "socket.io": "^2.2.0"
+  }
+}
