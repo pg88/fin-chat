@@ -5,72 +5,26 @@
     <title>JOBSITY - FINCHAT</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
-<body class="">
+<body class="" onload="loadMessages()">
     <div class="px-lg-5">
         <div class="row mx-lg-n5">
             <div class="col-10">
-                <H3>
+                <H3 class="">
                     JOBSITY - FINCHAT
                 </H3>
-                <div class="container">
+                <div class="container" style="padding: 0;">
                     <div class="overflow-auto" style="height:90vh;">
-                        <ul>
-                            <li>Chat item 1</li>
-                            <li>Chat item 2</li>
-                            <li>Chat item 3</li>
-                            <li>Chat item 4</li>
-                            <li>Chat item 5</li>
-                            <li>Chat item 6</li>
-                            <li>Chat item 7</li>
-                            <li>Chat item 8</li>
-                            <li>Chat item 9</li>
-                            <li>Chat item 10</li>
-                            <li>Chat item 11</li>
-                            <li>Chat item 12</li>
-                            <li>Chat item 13</li>
-                            <li>Chat item 14</li>
-                            <li>Chat item 15</li>
-                            <li>Chat item 16</li>
-                            <li>Chat item 17</li>
-                            <li>Chat item 18</li>
-                            <li>Chat item 19</li>
-                            <li>Chat item 20</li>
-                            <li>Chat item 21</li>
-                            <li>Chat item 22</li>
-                            <li>Chat item 23</li>
-                            <li>Chat item 24</li>
-                            <li>Chat item 25</li>
-                            <li>Chat item 26</li>
-                            <li>Chat item 27</li>
-                            <li>Chat item 28</li>
-                            <li>Chat item 29</li>
-                            <li>Chat item 30</li>
-                            <li>Chat item 31</li>
-                            <li>Chat item 32</li>
-                            <li>Chat item 33</li>
-                            <li>Chat item 34</li>
-                            <li>Chat item 35</li>
-                            <li>Chat item 36</li>
-                            <li>Chat item 37</li>
-                            <li>Chat item 38</li>
-                            <li>Chat item 39</li>
-                            <li>Chat item 40</li>
-                            <li>Chat item 41</li>
-                            <li>Chat item 42</li>
-                            <li>Chat item 43</li>
-                            <li>Chat item 44</li>
-                            <li>Chat item 45</li>
-                            <li>Chat item 46</li>
-                            <li>Chat item 47</li>
-                            <li>Chat item 48</li>
-                            <li>Chat item 49</li>
-                            <li>Chat item 50</li>
-                        </ul>
+                        <ul  id="messages" class="list-group"></ul>
                     </div>
                     <div class="input-group">
-                        <textarea class="form-control" aria-label="With textarea"></textarea>
+                        <div id="isTyping"></div>
+                        <textarea class="form-control"
+                                  id="textAreaMessage"
+                                  aria-label="With textarea"
+                        ></textarea>
                         <div class="input-group-append">
-                            <button class="btn btn-primary">
+                            <button class="btn btn-primary"
+                                    onclick="sendMessage()">
                                 SEND
                             </button>
                         </div>
@@ -79,7 +33,14 @@
             </div>
             <div class="col-2 border border-secondary border-top-0 border-right-0 border-bottom-0 bg-light">
                 <form style="height:100vh;">
-                    <H6 class="text-center">LOG IN</H6>
+                    <p class="text-center">FINCHAT COMMANDS</h6>
+                    <ul>
+                        <li>
+                            <small><bold>/stock=stock_code</bold></small>
+                        </li>
+                    </ul>
+                    <hr>
+                    <h6 class="text-center">LOG IN</h6>
                     <div class="form-group">
                         <label for="exampleInputEmail1">Email address</label>
                         <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
@@ -89,7 +50,9 @@
                         <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
                     </div>
                     <button onclick="register()" class="btn btn-primary w-100 rounded-pill">LOG IN</button>
+
                     <small class="text-secondary">v1.1.0</small>
+
                 </form>
             </div>
         </div>
@@ -100,11 +63,64 @@
     </button>-->
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
 <script>
     const socket = io('http://localhost:3666');
+    function loadMessages() {
+        fetch("api/messages")
+            .then(data => {
+                return data.json()
+            })
+            .then(response => {
+                response.messages.map(data  =>  {
+                    appendMessage(data);
+                })
+            })
+    }
+    function appendMessage(data) {
+        let li  =  document.createElement("li");
+        let owner = document.createElement("small");
+        owner.innerHTML =`${data.ownerName ? data.ownerName : "Anonymous" }, ${moment(data.date).format("YYYY-MM-DD hh:mm:ss A")} <br>`;
+        let messages = document.getElementById("messages");
+        li.className = ("list-group-item");
+        li.innerHTML = data.message;
+        li.prepend(owner);
+        messages.appendChild(li);
+    }
     function register(name) {
         socket.emit('register', name)
     }
+    function sendMessage() {
+        var message = document.getElementById("textAreaMessage");
+        if(message !== "") {
+            socket.emit("sendMessage", message.value);
+            appendMessage({
+                message: message.value,
+                date: Date.now()
+            });
+            message.value="";
+        }
+    }
+    const messageInput = document.getElementById("textAreaMessage");
+    const isTyping = document.getElementById("isTyping");
+    const stockActionRegex = /\/[stock]+=*/;
+    messageInput.addEventListener("keypress", (e) =>  {
+        const isCommand = stockActionRegex.test(e.target.value);
+        if (isCommand) {
+            socket.emit("callingBot", e.target.value.split("=")[1]);
+        }
+        socket.emit("userTyping", { user: "Someone", message: "is typing..."  });
+    });
+    socket.on("notifierTyping", data  =>  {
+        isTyping.innerText  =  `${data.user} ${data.message}`;
+    });
+    messageInput.addEventListener("keyup", () =>  {
+        socket.emit("stopTyping", "");
+    });
+
+    socket.on("notifyStopTyping", () =>  {
+        isTyping.innerText =  "";
+    });
 </script>
 </body>
 </html>

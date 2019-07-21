@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+var ObjectId = mongoose.Schema.Types.ObjectId;
 const messageSchema = new Schema({
   message: {
     type: String,
@@ -11,6 +12,9 @@ const messageSchema = new Schema({
   },
   ownerId: {
     type: ObjectId
+  },
+  ownerName: {
+    type: String
   }
 });
 
