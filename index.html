@@ -17,7 +17,7 @@
                         <ul  id="messages" class="list-group"></ul>
                     </div>
                     <div class="input-group">
-                        <div id="isTyping"></div>
+                        <div id="isTyping" class="fixed-bottom text-secondary" style="left: 20px"></div>
                         <textarea class="form-control"
                                   id="textAreaMessage"
                                   aria-label="With textarea"
@@ -35,6 +35,9 @@
                 <form style="height:100vh;">
                     <p class="text-center">FINCHAT COMMANDS</h6>
                     <ul>
+                        <li>
+                            <small><bold><a href="https://stooq.com/t/" target="_blank">Stock code list</a></bold></small>
+                        </li>
                         <li>
                             <small><bold>/stock=stock_code</bold></small>
                         </li>
@@ -86,6 +89,8 @@
         li.innerHTML = data.message;
         li.prepend(owner);
         messages.appendChild(li);
+        //TODO SCROLL TO BOTTOM
+        //messages.scrollTop = messages.scrollHeight + 74;
     }
     function register(name) {
         socket.emit('register', name)
@@ -99,6 +104,7 @@
                 date: Date.now()
             });
             message.value="";
+            socket.emit("stopTyping", "");
         }
     }
     const messageInput = document.getElementById("textAreaMessage");
@@ -112,15 +118,19 @@
         socket.emit("userTyping", { user: "Someone", message: "is typing..."  });
     });
     socket.on("notifierTyping", data  =>  {
-        isTyping.innerText  =  `${data.user} ${data.message}`;
+        setTimeout(() => {
+            isTyping.innerText  =  `${data.user} ${data.message}`;
+        }, 500);
     });
     messageInput.addEventListener("keyup", () =>  {
         socket.emit("stopTyping", "");
     });
-
     socket.on("notifyStopTyping", () =>  {
         isTyping.innerText =  "";
     });
+    socket.on("received", data  =>  {
+        appendMessage(data);
+    })
 </script>
 </body>
 </html>

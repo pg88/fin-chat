@@ -80,7 +80,11 @@ app.use(session({ secret: 'passport-tutorial', cookie: { maxAge: 60000 }, resave
 socket.on("connection", socket => {
   console.log("user connected");
   socket.on("register", handleRegister);
-  socket.on("sendMessage", handleMessage);
+  //socket.on("sendMessage", handleMessage);
+  socket.on("sendMessage", data => {
+    socket.broadcast.emit("received", { message: data  });
+    handleMessage(data);
+  });
   socket.on("userTyping", data => {
     socket.broadcast.emit("notifierTyping", { user: data.user, message: data.message });
   });
