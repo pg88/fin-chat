@@ -42,7 +42,6 @@ userSchema.pre("save", function(next) {
     //HASH THE PASSWORD USING OUR NEW SALT
     bcrypt.hash(user.password, salt, function(err, hash) {
       if (err) return next(err);
-
       //OVERRIDE THE CLEARTEXT PASSWORD WITH THE HASHED ONE
       user.password = hash;
       next();

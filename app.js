@@ -18,11 +18,7 @@ const port = 3666;
 //SET UP THE SOCKET
 const socket = io(http);
 //REQUIRE THE MODELS FOR MONGO
-const User  = require("./models/UserSchema");
 const Message  = require("./models/MessageSchema");
-
-//REQUIRE THE MONGO DB CONNECTOR
-const connect  = require("./config/dbconnection");
 ///REQUIRE THE ROUTER API
 const messageRouter  = require("./api/Messages");
 const userRouter  = require("./api/User");
@@ -32,8 +28,6 @@ const cors = require('cors');
 const errorHandler = require('errorhandler');
 //REQUIRE SESSION FOR EXPRESS
 const session = require('express-session');
-//REQUIRE UTILS
-const utils = require("./utils/index");
 //REQUIRE AMQP
 const rabbitAMQP = require("./rabbitMQ/index");
 //REQUIRE STOOQ
@@ -50,16 +44,17 @@ var handleLogin = function(user) {
 };
 var handleMessage = function(params) {
   let  chatMessage  =  new Message({ message: params.message, ownerName: params.ownerName });
-  chatMessage.save();
+  if (!params.isTemp) {
+    chatMessage.save();
+  }
 };
 var consume = function(socket) {
-  console.log("consume");
-  console.log(socket);
-  rabbitAMQP.consume();
-  socket.broadcast.emit("notifierTyping", { user: "BOT", message: "is calculating..."});
+  socket.broadcast.emit("notifierTyping", { user: "RABBITBOT", message: "is calculating..."});
+  rabbitAMQP.consume(socket);
+  setTimeout(() => {
+    socket.broadcast.emit("notifyStopTyping");
+  }, 850);
 };
-
-
 
 
 var handleBot = function(socket, stockCode) {

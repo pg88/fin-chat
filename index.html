@@ -95,6 +95,10 @@
 <script>
     let userName;
     const socket = io('http://localhost:3666');
+    const messageInput = document.getElementById("textAreaMessage");
+    const userNameInput = document.getElementById("InputName");
+    const isTyping = document.getElementById("isTyping");
+    const stockActionRegex = /\/[stock]+=*/;
     function readCookie(cookie) {
         var name = cookie + "=";
         var ca = document.cookie.split(';');
@@ -139,6 +143,7 @@
         close();
     }
     function appendMessage(data) {
+        console.log(data);
         let li  =  document.createElement("li");
         let owner = document.createElement("small");
         owner.innerHTML =`${ data.ownerName ? data.ownerName : "Anonymous" }, ${moment(data.date).format("YYYY-MM-DD hh:mm:ss A")} <br>`;
@@ -184,7 +189,12 @@
     function sendMessage() {
         var message = document.getElementById("textAreaMessage");
         if(message !== "") {
-            socket.emit("sendMessage", { message: message.value, ownerName: userName });
+            const isCommand = stockActionRegex.test(message.value);
+            if (isCommand) {
+                socket.emit("callingBot", message.value.split("=")[1]);
+            } else {
+                socket.emit("sendMessage", { message: message.value, ownerName: userName });
+            }
             appendMessage({
                 ownerName: userName,
                 message: message.value,
@@ -194,10 +204,6 @@
             socket.emit("stopTyping", "");
         }
     }
-    const messageInput = document.getElementById("textAreaMessage");
-    const userNameInput = document.getElementById("InputName");
-    const isTyping = document.getElementById("isTyping");
-    const stockActionRegex = /\/[stock]+=*/;
     userNameInput.addEventListener("keydown", (e) => {
         if (e.target.value != "" && e.target.value.length >= 3) {
             $("#setUserNameButton").removeClass("disabled");
@@ -206,10 +212,6 @@
         }
     });
     messageInput.addEventListener("keypress", (e) =>  {
-        const isCommand = stockActionRegex.test(e.target.value);
-        if (isCommand) {
-            socket.emit("callingBot", e.target.value.split("=")[1]);
-        }
         socket.emit("userTyping", { user: userName ? userName : "Someone", message: "is typing..."  });
     });
     socket.on("notifierTyping", data  =>  {

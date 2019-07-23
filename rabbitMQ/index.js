@@ -1,6 +1,6 @@
 const amqp = require("amqplib/callback_api");
 const amqpURL = "amqp://cxealfby:Gg6vf4Yg2KwbsTwMyu38vT-f9K1fbqCD@wasp.rmq.cloudamqp.com/cxealfby";
-
+const rabbitBot = "RABBITBOT";
 const amqpMethods = {
   produce: function(stock) {
     amqp.connect(amqpURL, (err, conn) => {
@@ -15,7 +15,7 @@ const amqpMethods = {
       });
     });
   },
-  consume: function() {
+  consume: function(socket) {
     amqp.connect(amqpURL, (err, conn) => {
       if(err) {
         throw err;
@@ -24,8 +24,7 @@ const amqpMethods = {
         const q = 'STOCK_CHANNEL';
         channel.assertQueue(q, { durable: false });
         channel.consume(q, (msg) => {
-          console.log("RABBIT__", msg.content.toString());
-          return channel.ack(msg);
+          socket.broadcast.emit("received", { ownerName: "RABBITBOT", message: msg.content.toString() });
         }, { ack: true })
       })
     })
