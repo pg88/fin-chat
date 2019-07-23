@@ -5,7 +5,7 @@ Fin-chat coding challenge
 #### Requirements
  1. **NodeJS** latest version installed, if you don't have it. Please download and install it [here.](https://nodejs.org/en/)
  2. **NPM** latest version installed, if you don't have it. Please download and install it [here.](https://www.npmjs.com/get-npm)
- 3. **MongoDB** latest version installed, if you don't have it. Please download and install it [here.](https://www.mongodb.com/download-center/community)
+ 3. **MongoDB** latest version installed and **running on your machine**, if you don't have it. Please download and install it [here.](https://www.mongodb.com/download-center/community)
  4. **Google Chrome** latest version installed, if you don't have it. Please download and install it [here.]( https://www.google.com/chrome/)
  
  
