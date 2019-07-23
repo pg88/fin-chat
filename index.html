@@ -77,7 +77,7 @@
                         </li>
                     </ul>
                     <hr>
-                    <h6 class="text-center">LOG IN</h6>
+                    <h6 class="text-center">REGISTER</h6>
                     <div class="form-group">
                         <label for="InputEmail">Email address</label>
                         <input type="email" class="form-control" id="InputEmail" aria-describedby="emailHelp" placeholder="Enter email">
@@ -86,8 +86,7 @@
                         <label for="InputPassword">Password</label>
                         <input type="password" class="form-control" id="InputPassword" placeholder="Password">
                     </div>
-                    <button onclick="login()" class="btn btn-primary w-100 rounded-pill">LOG IN</button>
-                    <button onclick="register()" class="btn btn-primary w-100 rounded-pill" style="display: none">REGISTER</button>
+                    <button onclick="register()" class="btn btn-primary w-100 rounded-pill">REGISTER</button>
 
                     <small class="text-secondary">v1.1.0</small>
 
@@ -95,10 +94,6 @@
             </div>
         </div>
     </div>
-    <!--
-    <button onclick="register('perritos')">
-    REGISTER
-    </button>-->
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
@@ -148,8 +143,8 @@
             $("#ModalCenter").modal();
         }
     }
-    function setUserName() {
-        userName = document.getElementById("InputName").value;
+    function setUserName(user) {
+        userName = user ? user.userName : document.getElementById("InputName").value;
         document.cookie = `userName=${userName}`;
         showUser();
         close();
@@ -169,7 +164,7 @@
     function setUser() {
         return {
             email: document.getElementById("InputEmail").value,
-            userName: document.getElementById("InputEmail").value,
+            userName: userName ? userName : document.getElementById("InputEmail").value,
             password: document.getElementById("InputPassword").value
         };
     }
@@ -181,14 +176,14 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(setUser())
-            }.then(data => {
-                return data.json()
+                body: JSON.stringify(user)
+            }).then(data => {
+                return data.json();
             }).then(response => {
-                if (response.created) {
-
-                    }
-            });
+                if (response.auth) {
+                    setUserName(user)
+                }
+            })
         }
     }
     function register() {

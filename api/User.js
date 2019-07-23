@@ -18,8 +18,7 @@ router.route("/signup").post((req, res, next) =>  {
       });
   });
 });
-router.route("/signin").get((req, res, next) =>  {
-  console.log("SGININ__", req.body);
+router.route("/signin").post((req, res, next) =>  {
   res.setHeader("Content-Type", "application/json");
   connectdb.then(db  =>  {
     User.find({ email: req.body.email }, (err, user) => {
@@ -27,7 +26,6 @@ router.route("/signin").get((req, res, next) =>  {
         return res.statusCode = 500;
       }
       user[0].comparePassword(req.body.password, (err, isMatch) => {
-        console.log("AAA__", isMatch);
         if (err) {
           throw err;
         }
