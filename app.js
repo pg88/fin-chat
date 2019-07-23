@@ -18,11 +18,14 @@ const port = 3666;
 //SET UP THE SOCKET
 const socket = io(http);
 //REQUIRE THE MODELS FOR MONGO
+const User  = require("./models/UserSchema");
 const Message  = require("./models/MessageSchema");
+
 //REQUIRE THE MONGO DB CONNECTOR
 const connect  = require("./config/dbconnection");
-///REQUIRE THE MESSAGES ROUTER API
+///REQUIRE THE ROUTER API
 const messageRouter  = require("./api/Messages");
+const userRouter  = require("./api/User");
 //REQUIRE CORS
 const cors = require('cors');
 //REQUIRE ERROR HANDLER
@@ -34,26 +37,41 @@ const utils = require("./utils/index");
 //REQUIRE AMQP
 const rabbitAMQP = require("./rabbitMQ/index");
 //REQUIRE STOOQ
-const stock = require("./api/Stooq");
+const stockBot = require("./api/Stooq");
 //CHECK ENV VARIABLE
 const isProduction = process.env.NODE_ENV === 'production';
 
-
 //TODO MOVE HANDLER FUNCTIONS TO CORRECT FILE
-var handleRegister = function(param) {
-  return param;
+var handleRegister = function(newUser) {
+  return userRouter.signup(newUser);
 };
-var handleMessage = function(message) {
-  let  chatMessage  =  new Message({ message: message, objectId: "0"});
+var handleLogin = function(user) {
+  return userRouter.login(user);
+};
+var handleMessage = function(params) {
+  let  chatMessage  =  new Message({ message: params.message, ownerName: params.ownerName });
   chatMessage.save();
 };
-var handleBot = function(stockCode) {
+var consume = function(socket) {
+  console.log("consume");
+  console.log(socket);
+  rabbitAMQP.consume();
+  socket.broadcast.emit("notifierTyping", { user: "BOT", message: "is calculating..."});
+};
+
+
+
+
+var handleBot = function(socket, stockCode) {
   if(stockCode !== null && stockCode !== "") {
-    /*rabbitAMQP.produce();
-    rabbitAMQP.consume();*/
-    return stock(stockCode);
+    stockBot.getStooq(stockCode).then(val => {
+      rabbitAMQP.produce(val);
+    })
+    .finally(val => {
+      consume(socket);
+    })
   }
-}
+};
 
 //LISTEN TO SET PORT
 http.listen(port, () => {
@@ -69,20 +87,18 @@ app.get('/', (request, response) => {
 if(!isProduction) {
   app.use(errorHandler());
 }
-app.use(bodyParser.json());
 app.use(cors());
+app.use(bodyParser.json());
+app.use("/api/user", userRouter);
 app.use("/api/messages", messageRouter);
 app.use(session({ secret: 'passport-tutorial', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false }));
-
 
 
 //SOCKET EVENTS
 socket.on("connection", socket => {
   console.log("user connected");
-  socket.on("register", handleRegister);
-  //socket.on("sendMessage", handleMessage);
   socket.on("sendMessage", data => {
-    socket.broadcast.emit("received", { message: data  });
+    socket.broadcast.emit("received", { message: data });
     handleMessage(data);
   });
   socket.on("userTyping", data => {
@@ -91,6 +107,8 @@ socket.on("connection", socket => {
   socket.on("stopTyping", () => {
     socket.broadcast.emit("notifyStopTyping");
   });
-  socket.on("callingBot", handleBot);
+  socket.on("callingBot", data => {
+    handleBot(socket, data);
+  });
 });
 

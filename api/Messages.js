@@ -1,18 +1,15 @@
 const express  = require("express");
 const connectdb  = require("./../config/dbconnection");
 const Messages  = require("./../models/MessageSchema");
-const utils = require("./../utils/index");
 
 const  router  =  express.Router();
 
 router.route("/").get((req, res, next) =>  {
   res.setHeader("Content-Type", "application/json");
   connectdb.then(db  =>  {
-    Messages.find().sort({ $natural: -1 }).limit(50).then(messages  =>  {
+    Messages.find().sort({ date: "desc" }).limit(50).then(messages  =>  {
       if (messages) {
-        messages = messages.sort((a, b) => {
-          return a.date > b.date;
-        })
+        messages = messages.reverse()
         res.statusCode  =  200;
         return res.json({
           total: messages.length,

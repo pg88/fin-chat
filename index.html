@@ -6,6 +6,24 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body class="" onload="loadMessages()">
+    <div class="modal fade" id="ModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">JOBSITY - FINCHAT</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="InputName">Username - 3 Characters please</label>
+                        <input type="input" class="form-control" id="InputName"  placeholder="Enter userName">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="setUserNameButton" onclick="setUserName()" class="btn btn-primary disabled">SAVE</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="px-lg-5">
         <div class="row mx-lg-n5">
             <div class="col-10">
@@ -32,8 +50,12 @@
                 </div>
             </div>
             <div class="col-2 border border-secondary border-top-0 border-right-0 border-bottom-0 bg-light">
-                <form style="height:100vh;">
-                    <p class="text-center">FINCHAT COMMANDS</h6>
+                <div style="height:100vh;" class="mt-1">
+                    <h5 id="welcome">
+                        Welcome <span id="userName"></span>
+                    </h5>
+                    <hr>
+                    <p class="text-center">Finchat commands</h6>
                     <ul>
                         <li>
                             <small><bold><a href="https://stooq.com/t/" target="_blank">Stock code list</a></bold></small>
@@ -45,18 +67,19 @@
                     <hr>
                     <h6 class="text-center">LOG IN</h6>
                     <div class="form-group">
-                        <label for="exampleInputEmail1">Email address</label>
-                        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+                        <label for="InputEmail">Email address</label>
+                        <input type="email" class="form-control" id="InputEmail" aria-describedby="emailHelp" placeholder="Enter email">
                     </div>
                     <div class="form-group">
-                        <label for="exampleInputPassword1">Password</label>
-                        <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+                        <label for="InputPassword">Password</label>
+                        <input type="password" class="form-control" id="InputPassword" placeholder="Password">
                     </div>
-                    <button onclick="register()" class="btn btn-primary w-100 rounded-pill">LOG IN</button>
+                    <button onclick="login()" class="btn btn-primary w-100 rounded-pill">LOG IN</button>
+                    <button onclick="register()" class="btn btn-primary w-100 rounded-pill">REGISTER</button>
 
                     <small class="text-secondary">v1.1.0</small>
 
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -66,10 +89,28 @@
     </button>-->
 
 <script src="/socket.io/socket.io.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
 <script>
+    let userName;
     const socket = io('http://localhost:3666');
+    function readCookie(cookie) {
+        var name = cookie + "=";
+        var ca = document.cookie.split(';');
+        for(var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
     function loadMessages() {
+        showUser();
         fetch("api/messages")
             .then(data => {
                 return data.json()
@@ -80,26 +121,72 @@
                 })
             })
     }
+    function showUser() {
+        $("#welcome").hide();
+        const hasUserName = readCookie("userName");
+        if (hasUserName) {
+            userName = hasUserName;
+            $("#userName").html(hasUserName);
+            $("#welcome").show();
+        } else {
+            $("#ModalCenter").modal();
+        }
+    }
+    function setUserName() {
+        userName = document.getElementById("InputName").value;
+        document.cookie = `userName=${userName}`;
+        showUser();
+        close();
+    }
     function appendMessage(data) {
         let li  =  document.createElement("li");
         let owner = document.createElement("small");
-        owner.innerHTML =`${data.ownerName ? data.ownerName : "Anonymous" }, ${moment(data.date).format("YYYY-MM-DD hh:mm:ss A")} <br>`;
+        owner.innerHTML =`${ data.ownerName ? data.ownerName : "Anonymous" }, ${moment(data.date).format("YYYY-MM-DD hh:mm:ss A")} <br>`;
         let messages = document.getElementById("messages");
         li.className = ("list-group-item");
         li.innerHTML = data.message;
         li.prepend(owner);
         messages.appendChild(li);
         //TODO SCROLL TO BOTTOM
-        //messages.scrollTop = messages.scrollHeight + 74;
+        //messages.scrollTop = messages.scrollHeight;
     }
-    function register(name) {
-        socket.emit('register', name)
+    function setUser() {
+        return {
+            email: document.getElementById("InputEmail").value,
+            userName: document.getElementById("InputEmail").value,
+            password: document.getElementById("InputPassword").value
+        };
+    }
+    function login() {
+        const user = setUser();
+        if (user.email && user.password) {
+            socket.emit("login", user);
+        }
+    }
+    function register() {
+        fetch("/api/user/signup", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(setUser())
+        }).then(data => {
+            return data.json()
+        }).then(response => {
+            if (response.created) {
+
+            }
+        })
+    }
+    function close() {
+        $("#ModalCenter").modal('hide');
     }
     function sendMessage() {
         var message = document.getElementById("textAreaMessage");
         if(message !== "") {
-            socket.emit("sendMessage", message.value);
+            socket.emit("sendMessage", { message: message.value, ownerName: userName });
             appendMessage({
+                ownerName: userName,
                 message: message.value,
                 date: Date.now()
             });
@@ -108,19 +195,27 @@
         }
     }
     const messageInput = document.getElementById("textAreaMessage");
+    const userNameInput = document.getElementById("InputName");
     const isTyping = document.getElementById("isTyping");
     const stockActionRegex = /\/[stock]+=*/;
+    userNameInput.addEventListener("keydown", (e) => {
+        if (e.target.value != "" && e.target.value.length >= 3) {
+            $("#setUserNameButton").removeClass("disabled");
+        } else {
+            $("#setUserNameButton").addClass("disabled");
+        }
+    });
     messageInput.addEventListener("keypress", (e) =>  {
         const isCommand = stockActionRegex.test(e.target.value);
         if (isCommand) {
             socket.emit("callingBot", e.target.value.split("=")[1]);
         }
-        socket.emit("userTyping", { user: "Someone", message: "is typing..."  });
+        socket.emit("userTyping", { user: userName ? userName : "Someone", message: "is typing..."  });
     });
     socket.on("notifierTyping", data  =>  {
         setTimeout(() => {
             isTyping.innerText  =  `${data.user} ${data.message}`;
-        }, 500);
+        }, 350);
     });
     messageInput.addEventListener("keyup", () =>  {
         socket.emit("stopTyping", "");

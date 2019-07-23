@@ -1,13 +1,39 @@
-const http = require("http");
-const url  = "http://stooq.com/q/l/?s=";
+const csvstring= require("csvtojson");
+const request = require("request");
+var Promise = require("bluebird");
+const url  = "https://stooq.com/q/l/?s=";
 const params = "&f=sd2t2ohlcv&h&e=csv";
 
-const getStooq = function(stockCode) {
-  const buildUrl = `${url}${stockCode}${params}`;
-  return http.get(buildUrl, (response) => {
-      console.log("STOCKCSV__", response);
-      return response;
-  });
+const stockBot = {
+  getStooq: function(stockCode) {
+    const buildUrl = `${url}${stockCode}${params}`;
+    const stock = new Promise((resolve, reject) => {
+      request.get(buildUrl, (error, response, body) => {
+          resolve(body);
+      });
+    });
+    return Promise.all([stock]).then(value => {
+        return value;
+    }).then(value => {
+        return stockBot.parseResult(value[0])
+    })
+  },
+  parseResult: function(file) {
+      return csvstring({
+        output: "json",
+        colParser:{
+          "Symbol": "string",
+          "Close": "string",
+        },
+        checkType:true
+      }).fromString(file)
+        .then((csvRow) => {
+          if(csvRow) {
+            return csvRow[0];
+          }
+        })
+  }
 };
 
-module.exports = getStooq;
+module.exports = stockBot;
+
