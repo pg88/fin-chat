@@ -20,3 +20,8 @@ Fin-chat coding challenge
  #### RabbitMQ
  
  1. The message broker RabbitMQ is located on this free service **```CLOUDAMQP```**, this was made for speed up the process and have a real behavior on this, it runs on a small instance called ```Little Lemur``` 
+
+![alt text](https://raw.githubusercontent.com/pg88/fin-chat/master/images/rabbitMQ_console.png "rabbitMQ_Console")
+
+
+![alt text](https://raw.githubusercontent.com/pg88/fin-chat/master/images/rabbitMQ_panel.png "rabbitMQ_Panel")
