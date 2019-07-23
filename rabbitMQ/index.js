@@ -24,7 +24,7 @@ const amqpMethods = {
         const q = 'STOCK_CHANNEL';
         channel.assertQueue(q, { durable: false });
         channel.consume(q, (msg) => {
-          socket.broadcast.emit("received", { ownerName: "RABBITBOT", message: msg.content.toString() });
+          socket.broadcast.emit("received", { ownerName: "RABBITBOT", message: msg.content.toString(), isTemp: true });
         }, { ack: true })
       })
     })

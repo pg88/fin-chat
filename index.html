@@ -143,7 +143,6 @@
         close();
     }
     function appendMessage(data) {
-        console.log(data);
         let li  =  document.createElement("li");
         let owner = document.createElement("small");
         owner.innerHTML =`${ data.ownerName ? data.ownerName : "Anonymous" }, ${moment(data.date).format("YYYY-MM-DD hh:mm:ss A")} <br>`;
