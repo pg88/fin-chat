@@ -14,6 +14,18 @@
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
+                        <label for="InputEmail">Email address</label>
+                        <input type="email" class="form-control" id="InputEmail" aria-describedby="emailHelp" placeholder="Enter email">
+                    </div>
+                    <div class="form-group">
+                        <label for="InputPassword">Password</label>
+                        <input type="password" class="form-control" id="InputPassword" placeholder="Password">
+                    </div>
+                    <button onclick="login()" class="btn btn-primary w-100 rounded-pill">LOG IN</button>
+
+                    <hr>
+
+                    <div class="form-group">
                         <label for="InputName">Username - 3 Characters please</label>
                         <input type="input" class="form-control" id="InputName"  placeholder="Enter userName">
                     </div>
@@ -164,7 +176,19 @@
     function login() {
         const user = setUser();
         if (user.email && user.password) {
-            socket.emit("login", user);
+            fetch("/api/user/signin", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(setUser())
+            }.then(data => {
+                return data.json()
+            }).then(response => {
+                if (response.created) {
+
+                    }
+            });
         }
     }
     function register() {
