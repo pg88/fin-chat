@@ -24,4 +24,3 @@ Fin-chat coding challenge
 ![alt text](https://raw.githubusercontent.com/pg88/fin-chat/master/images/rabbitMQ_console.png "rabbitMQ_Console")
 
 
-![alt text](https://raw.githubusercontent.com/pg88/fin-chat/master/images/rabbitMQ_panel.png "rabbitMQ_Panel")
